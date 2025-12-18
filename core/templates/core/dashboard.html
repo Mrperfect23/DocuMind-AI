@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen py-10 px-4">
+  <div class="mx-auto max-w-4xl">
+    <!-- Header / Logo -->
+    <header class="mb-8 text-center">
+      <div class="mb-3 flex items-center justify-center gap-3">
+        <div
+          class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 text-sm font-semibold text-white shadow-lg shadow-indigo-300/60"
+        >
+          DM
+        </div>
+        <div class="text-left">
+          <h1 class="text-xl font-semibold tracking-tight text-slate-900">DocuMind</h1>
+          <p class="text-xs text-slate-500">AI-powered PDF study assistant</p>
+        </div>
+      </div>
+      <h2
+        class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl"
+      >
+        Turn your PDF into a Super-Brain 🧠
+      </h2>
+      <p class="mt-3 text-sm text-slate-700/90">
+        Upload your notes and get a focused summary, flashcards for active recall, and a practice
+        quiz — in one clean, minimalist workspace.
+      </p>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="mb-8">
+      {% if error %}
+      <div
+        class="mb-4 rounded-2xl border border-red-200/70 bg-red-50/80 px-4 py-3 text-xs text-red-800 shadow-sm"
+      >
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" class="space-y-3">
+        {% csrf_token %}
+        <label
+          for="pdf_file"
+          class="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-white/60 bg-white/60 p-8 text-center shadow-xl shadow-indigo-100/60 backdrop-blur-md transition hover:-translate-y-1 hover:bg-white/80 hover:shadow-2xl"
+        >
+          <!-- Upload Icon -->
+          <div
+            class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-300/60"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              class="h-7 w-7"
+            >
+              <path
+                d="M12 16V4m0 0-4 4m4-4 4 4M5 13v5a2 2 0 002 2h10a2 2 0 002-2v-5"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+
+          <p class="text-sm font-semibold text-slate-900">
+            Drop your study PDF here or
+            <span class="text-indigo-600 underline underline-offset-4">browse files</span>
+          </p>
+          <p class="mt-1 text-xs text-slate-500">
+            Best results with individual chapters or focused notes • PDFs only.
+          </p>
+
+          <div class="mt-4 flex flex-wrap justify-center gap-2 text-[10px] text-slate-600">
+            <span class="rounded-full bg-slate-100/80 px-3 py-1">✨ Smart summary</span>
+            <span class="rounded-full bg-slate-100/80 px-3 py-1">🎴 Flashcards</span>
+            <span class="rounded-full bg-slate-100/80 px-3 py-1">❓ Quiz questions</span>
+          </div>
+
+          <input
+            id="pdf_file"
+            name="pdf_file"
+            type="file"
+            accept="application/pdf"
+            class="sr-only"
+          />
+        </label>
+
+        <div class="flex items-center justify-between text-xs text-slate-500">
+          <span>Max ~25 MB • No login required</span>
+          <button
+            type="submit"
+            class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-xs font-medium text-white shadow-md shadow-slate-900/30 transition hover:-translate-y-0.5 hover:bg-black"
+          >
+            <span>Generate Study Pack</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results Section -->
+    {% if summary or flashcards or quiz %}
+    <section class="space-y-6">
+      <!-- Summary Card -->
+      {% if summary %}
+      <div
+        class="rounded-2xl border border-indigo-100 bg-white/70 p-5 shadow-lg shadow-indigo-100/70 backdrop-blur-md"
+      >
+        <h3 class="mb-3 text-sm font-semibold tracking-wide text-indigo-800">
+          Summary Highlights
+        </h3>
+        <div class="space-y-2 text-sm text-slate-800">
+          {% for line in summary.splitlines %}
+          {% if line %}
+          <p class="flex gap-2">
+            <span class="mt-[6px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-indigo-400"></span>
+            <span>{{ line }}</span>
+          </p>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Flashcards Grid -->
+      {% if flashcards %}
+      <div
+        class="rounded-2xl border border-yellow-100 bg-white/60 p-5 shadow-md shadow-yellow-100/70 backdrop-blur-md"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-sm font-semibold tracking-wide text-yellow-800">
+            Flashcards for Active Recall
+          </h3>
+          <span class="text-[11px] text-yellow-700">{{ flashcards|length }} cards</span>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {% for card in flashcards %}
+          <div
+            class="relative h-28 overflow-hidden rounded-xl border border-yellow-100 bg-gradient-to-br from-yellow-50 to-amber-50 px-3 py-2 text-[11px] text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            <p class="line-clamp-3 font-semibold">
+              {{ card.front }}
+            </p>
+            <p class="mt-2 line-clamp-3 text-[10px] text-slate-600">
+              {{ card.back }}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quiz List -->
+      {% if quiz %}
+      <div
+        class="rounded-2xl border border-slate-200 bg-white/70 p-5 shadow-md shadow-slate-200/70 backdrop-blur-md"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-sm font-semibold tracking-wide text-slate-800">
+            Practice Quiz Questions
+          </h3>
+          <span class="text-[11px] text-slate-500">{{ quiz|length }} questions</span>
+        </div>
+        <div class="space-y-4 text-sm text-slate-800">
+          {% for q in quiz %}
+          <div
+            class="quiz-question rounded-xl border border-slate-100 bg-slate-50/80 p-4"
+            data-answer="{{ q.answer }}"
+          >
+            <p class="mb-3 text-[13px] font-semibold">
+              Q{{ forloop.counter }}. {{ q.question }}
+            </p>
+            <div class="grid gap-2">
+              {% for option in q.options %}
+              <button
+                type="button"
+                class="quiz-option flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-left text-[12px] text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"
+              >
+                <span class="truncate">{{ option }}</span>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </section>
+    {% else %}
+    <section
+      class="mt-6 rounded-2xl border border-white/40 bg-white/40 p-4 text-xs text-slate-600 backdrop-blur-md"
+    >
+      <p>
+        Your AI-generated study pack will appear here once you upload a PDF. Start with a single
+        topic or chapter for the cleanest, most focused insights.
+      </p>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+<script>
+  function checkAnswer(button, correctAnswer) {
+    const questionEl = button.closest(".quiz-question");
+    if (!questionEl) return;
+
+    const options = questionEl.querySelectorAll(".quiz-option");
+    const chosen = button.textContent.trim();
+    const normalizedCorrect = (correctAnswer || "").trim();
+
+    // Disable all buttons for this question
+    options.forEach((opt) => {
+      opt.disabled = true;
+      opt.classList.remove(
+        "hover:border-indigo-300",
+        "hover:bg-indigo-50",
+        "bg-green-500",
+        "text-white",
+        "bg-red-500"
+      );
+    });
+
+    // Mark chosen (case-insensitive comparison to be safe)
+    if (chosen.toLowerCase() === normalizedCorrect.toLowerCase()) {
+      button.classList.remove("border-slate-200", "bg-white", "text-slate-700");
+      button.classList.add("bg-green-500", "text-white", "border-green-500");
+    } else {
+      button.classList.remove("border-slate-200", "bg-white", "text-slate-700");
+      button.classList.add("bg-red-500", "text-white", "border-red-500");
+
+      // Highlight the correct one
+      options.forEach((opt) => {
+        const text = opt.textContent.trim();
+        if (text.toLowerCase() === normalizedCorrect.toLowerCase()) {
+          opt.classList.remove("border-slate-200", "bg-white", "text-slate-700");
+          opt.classList.add("bg-green-500", "text-white", "border-green-500");
+        }
+      });
+    }
+  }
+
+  function initQuizInteractions() {
+    document.querySelectorAll(".quiz-question").forEach((questionEl) => {
+      const correctAnswer = questionEl.dataset.answer || "";
+      questionEl.querySelectorAll(".quiz-option").forEach((btn) => {
+        // Remove any existing handlers before adding a new one
+        btn.onclick = null;
+        btn.addEventListener("click", () => checkAnswer(btn, correctAnswer));
+      });
+    });
+  }
+
+  // Run immediately (script is at the bottom, DOM is already loaded)
+  initQuizInteractions();
+
+  // Also attach to DOMContentLoaded in case this script moves to <head> later
+  document.addEventListener("DOMContentLoaded", initQuizInteractions);
+</script>
+
+
